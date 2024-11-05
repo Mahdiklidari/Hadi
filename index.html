@@ -4,89 +4,68 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>بازی شطرنج دو نفره</title>
+    <link rel="stylesheet" href="https://unpkg.com/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
     <style>
         body {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
         }
-
-        #chessboard {
-            display: grid;
-            grid-template-columns: repeat(8, 60px);
-            grid-template-rows: repeat(8, 60px);
-            border: 2px solid #333;
+        #board {
+            width: 400px;
+            margin-top: 20px;
         }
-
-        .square {
-            width: 60px;
-            height: 60px;
-            font-size: 40px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-        }
-
-        .dark {
-            background-color: #769656;
-        }
-
-        .light {
-            background-color: #eeeed2;
+        #status {
+            margin-top: 10px;
+            font-size: 1.2em;
         }
     </style>
 </head>
 <body>
-    <div id="chessboard"></div>
+    <h1>بازی شطرنج دو نفره</h1>
+    <div id="board"></div>
+    <div id="status">نوبت سفید</div>
 
+    <script src="https://unpkg.com/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+    <script src="https://unpkg.com/chess.js@0.10.2/chess.min.js"></script>
     <script>
-        const chessboard = document.getElementById("chessboard");
-        const pieces = {
-            "1": "♖♘♗♕♔♗♘♖",
-            "2": "♙♙♙♙♙♙♙♙",
-            "7": "♟♟♟♟♟♟♟♟",
-            "8": "♜♞♝♛♚♝♞♜"
+        const boardElement = document.getElementById('board');
+        const statusElement = document.getElementById('status');
+        const game = new Chess();
+
+        const onMoveEnd = () => {
+            const status = game.in_checkmate() ? 'مات' : game.in_draw() ? 'بازی مساوی' : 'نوبت ' + (game.turn() === 'w' ? 'سفید' : 'سیاه');
+            statusElement.innerText = status;
         };
 
-        function createChessBoard() {
-            for (let i = 1; i <= 8; i++) {
-                for (let j = 1; j <= 8; j++) {
-                    const square = document.createElement("div");
-                    square.classList.add("square");
-                    square.classList.add((i + j) % 2 === 0 ? "light" : "dark");
-                    square.dataset.row = i;
-                    square.dataset.col = j;
-
-                    if (pieces[i]) {
-                        square.textContent = pieces[i][j - 1];
-                    }
-
-                    square.addEventListener("click", handleMove);
-                    chessboard.appendChild(square);
-                }
+        const onDragStart = (source, piece) => {
+            if (game.in_checkmate() || game.in_draw() || (game.turn() === 'w' && piece.search(/^b/) !== -1) || (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+                return false;
             }
-        }
+        };
 
-        let selectedSquare = null;
+        const onDrop = (source, target) => {
+            const move = game.move({
+                from: source,
+                to: target,
+                promotion: 'q'
+            });
+            if (move === null) return 'snapback';
+            onMoveEnd();
+        };
 
-        function handleMove(event) {
-            const square = event.target;
+        const config = {
+            draggable: true,
+            position: 'start',
+            onDragStart: onDragStart,
+            onDrop: onDrop
+        };
 
-            if (selectedSquare) {
-                selectedSquare.textContent = "";
-                square.textContent = selectedSquare.piece;
-                selectedSquare = null;
-            } else if (square.textContent) {
-                selectedSquare = square;
-                selectedSquare.piece = square.textContent;
-            }
-        }
+        const board = Chessboard('board', config);
 
-        createChessBoard();
+        onMoveEnd();
     </script>
 </body>
 </html>
