@@ -3,15 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تبدیل تصویر به کد باینری</title>
+    <title>تبدیل تصویر به کد باینری و بالعکس</title>
 </head>
 <body>
-    <h1>تبدیل تصویر به کد باینری</h1>
+    <h1>تبدیل تصویر به کد باینری و بالعکس</h1>
+
+    <!-- بخش آپلود و تبدیل تصویر به باینری -->
+    <h2>تبدیل تصویر به کد باینری</h2>
     <input type="file" id="imageInput" accept="image/*">
     <button onclick="convertToBinary()">تبدیل به کد باینری</button>
     <br><br>
     <canvas id="canvas" style="display: none;"></canvas>
     <textarea id="binaryOutput" rows="10" cols="60" placeholder="کد باینری اینجا نمایش داده می‌شود"></textarea>
+
+    <!-- بخش تبدیل باینری به تصویر -->
+    <h2>تبدیل کد باینری به تصویر</h2>
+    <textarea id="binaryInput" rows="10" cols="60" placeholder="کد باینری خود را وارد کنید"></textarea>
+    <button onclick="convertToImage()">تبدیل به تصویر</button>
+    <br><br>
+    <canvas id="resultCanvas"></canvas>
 
     <script>
         function convertToBinary() {
@@ -33,7 +43,6 @@
                         let binaryData = '';
 
                         for (let i = 0; i < imageData.data.length; i += 4) {
-                            // هر پیکسل را به سیاه و سفید تبدیل می‌کنیم
                             const gray = (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
                             binaryData += gray > 128 ? '1' : '0';
                         }
@@ -46,6 +55,29 @@
             } else {
                 alert("لطفاً یک تصویر انتخاب کنید.");
             }
+        }
+
+        function convertToImage() {
+            const binaryInput = document.getElementById('binaryInput').value;
+            const resultCanvas = document.getElementById('resultCanvas');
+            const width = 100; // عرض دلخواه تصویر
+            const height = Math.ceil(binaryInput.length / width); // ارتفاع براساس طول باینری
+
+            resultCanvas.width = width;
+            resultCanvas.height = height;
+            const ctx = resultCanvas.getContext('2d');
+            const imageData = ctx.createImageData(width, height);
+
+            for (let i = 0; i < binaryInput.length; i++) {
+                const value = binaryInput[i] === '1' ? 255 : 0;
+                const pixelIndex = i * 4;
+                imageData.data[pixelIndex] = value; // قرمز
+                imageData.data[pixelIndex + 1] = value; // سبز
+                imageData.data[pixelIndex + 2] = value; // آبی
+                imageData.data[pixelIndex + 3] = 255; // آلفا
+            }
+
+            ctx.putImageData(imageData, 0, 0);
         }
     </script>
 </body>
