@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بازی شطرنج دو نفره</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+
+        #chessboard {
+            display: grid;
+            grid-template-columns: repeat(8, 60px);
+            grid-template-rows: repeat(8, 60px);
+            border: 2px solid #333;
+        }
+
+        .square {
+            width: 60px;
+            height: 60px;
+            font-size: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .dark {
+            background-color: #769656;
+        }
+
+        .light {
+            background-color: #eeeed2;
+        }
+    </style>
+</head>
+<body>
+    <div id="chessboard"></div>
+
+    <script>
+        const chessboard = document.getElementById("chessboard");
+        const pieces = {
+            "1": "♖♘♗♕♔♗♘♖",
+            "2": "♙♙♙♙♙♙♙♙",
+            "7": "♟♟♟♟♟♟♟♟",
+            "8": "♜♞♝♛♚♝♞♜"
+        };
+
+        function createChessBoard() {
+            for (let i = 1; i <= 8; i++) {
+                for (let j = 1; j <= 8; j++) {
+                    const square = document.createElement("div");
+                    square.classList.add("square");
+                    square.classList.add((i + j) % 2 === 0 ? "light" : "dark");
+                    square.dataset.row = i;
+                    square.dataset.col = j;
+
+                    if (pieces[i]) {
+                        square.textContent = pieces[i][j - 1];
+                    }
+
+                    square.addEventListener("click", handleMove);
+                    chessboard.appendChild(square);
+                }
+            }
+        }
+
+        let selectedSquare = null;
+
+        function handleMove(event) {
+            const square = event.target;
+
+            if (selectedSquare) {
+                selectedSquare.textContent = "";
+                square.textContent = selectedSquare.piece;
+                selectedSquare = null;
+            } else if (square.textContent) {
+                selectedSquare = square;
+                selectedSquare.piece = square.textContent;
+            }
+        }
+
+        createChessBoard();
+    </script>
+</body>
+</html>
