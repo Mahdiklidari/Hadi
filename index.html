@@ -3,95 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بازی شطرنج دو نفره</title>
-    <!-- بارگذاری CSS مربوط به chessboard.js -->
-    <link rel="stylesheet" href="https://unpkg.com/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
-    <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
-            font-family: Arial, sans-serif;
-        }
-
-        #board {
-            width: 400px;
-            margin-top: 20px;
-        }
-
-        #status {
-            margin-top: 20px;
-            font-size: 18px;
-            font-weight: bold;
-        }
-    </style>
+    <title>تبدیل تصویر به کد باینری</title>
 </head>
 <body>
-    <h1>بازی شطرنج دو نفره</h1>
-    <div id="board"></div>
-    <div id="status">نوبت سفید</div>
+    <h1>تبدیل تصویر به کد باینری</h1>
+    <input type="file" id="imageInput" accept="image/*">
+    <button onclick="convertToBinary()">تبدیل به کد باینری</button>
+    <br><br>
+    <canvas id="canvas" style="display: none;"></canvas>
+    <textarea id="binaryOutput" rows="10" cols="60" placeholder="کد باینری اینجا نمایش داده می‌شود"></textarea>
 
-    <!-- بارگذاری کتابخانه‌های chessboard.js و chess.js -->
-    <script src="https://unpkg.com/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
-    <script src="https://unpkg.com/chess.js@0.10.2/chess.min.js"></script>
     <script>
-        const boardElement = document.getElementById('board');
-        const statusElement = document.getElementById('status');
-        
-        // ایجاد بازی شطرنج جدید با chess.js
-        const game = new Chess();
+        function convertToBinary() {
+            const input = document.getElementById('imageInput');
+            const canvas = document.getElementById('canvas');
+            const binaryOutput = document.getElementById('binaryOutput');
 
-        // به‌روزرسانی وضعیت بازی بعد از هر حرکت
-        const onMoveEnd = () => {
-            if (game.in_checkmate()) {
-                statusElement.innerText = 'بازی تمام شد: مات ' + (game.turn() === 'b' ? 'سفید' : 'سیاه');
-            } else if (game.in_draw()) {
-                statusElement.innerText = 'بازی مساوی';
-            } else if (game.in_check()) {
-                statusElement.innerText = 'چک! نوبت ' + (game.turn() === 'w' ? 'سفید' : 'سیاه');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const img = new Image();
+                    img.onload = function () {
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0);
+                        
+                        const imageData = ctx.getImageData(0, 0, img.width, img.height);
+                        let binaryData = '';
+
+                        for (let i = 0; i < imageData.data.length; i += 4) {
+                            // هر پیکسل را به سیاه و سفید تبدیل می‌کنیم
+                            const gray = (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
+                            binaryData += gray > 128 ? '1' : '0';
+                        }
+
+                        binaryOutput.value = binaryData;
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(input.files[0]);
             } else {
-                statusElement.innerText = 'نوبت ' + (game.turn() === 'w' ? 'سفید' : 'سیاه');
+                alert("لطفاً یک تصویر انتخاب کنید.");
             }
-        };
-
-        // جلوگیری از حرکت غیرمجاز مهره‌ها
-        const onDragStart = (source, piece) => {
-            if (game.in_checkmate() || game.in_draw() || 
-                (game.turn() === 'w' && piece.search(/^b/) !== -1) || 
-                (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
-                return false;
-            }
-        };
-
-        // تابع انتقال مهره‌ها و بررسی حرکت‌ها
-        const onDrop = (source, target) => {
-            const move = game.move({
-                from: source,
-                to: target,
-                promotion: 'q' // وقتی سرباز به آخر بورد رسید به وزیر تبدیل می‌شود
-            });
-
-            if (move === null) return 'snapback'; // اگر حرکت غیرمعتبر است، مهره به جای قبلی برگردد
-            onMoveEnd();
-        };
-
-        // تنظیمات بورد شطرنج
-        const config = {
-            draggable: true,
-            position: 'start',
-            onDragStart: onDragStart,
-            onDrop: onDrop
-        };
-
-        // ساخت بورد شطرنج
-        const board = Chessboard('board', config);
-
-        // نمایش وضعیت اولیه
-        onMoveEnd();
+        }
     </script>
 </body>
 </html>
